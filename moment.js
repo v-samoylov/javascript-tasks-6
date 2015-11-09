@@ -10,6 +10,7 @@ module.exports = function () {
 
         // Выводит дату в переданном формате
         format: function (pattern) {
+        	return pattern.replace('%DD', this.date.weekday).replace('%HH', this.date.time.getHours()).replace('%MM', this.date.time.getMinutes());
         },
 
         // Возвращает кол-во времени между текущей датой и переданной `moment`
