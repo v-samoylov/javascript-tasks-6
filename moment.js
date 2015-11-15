@@ -8,7 +8,7 @@ module.exports = function () {
 
         format: function (pattern) {
             if (!this.timezone) {
-                this.timezone = -new Date().getTimezoneOffset() / 60;
+                this.timezone = 5;
             }
             var dates = {1: 'ПН', 2: 'ВТ', 3: 'СР'};
             var day = dates[this.date.getDate()];
