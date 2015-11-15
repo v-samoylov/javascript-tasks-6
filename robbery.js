@@ -3,39 +3,39 @@
 var moment = require('./moment');
 
 var parseDate = string => {
-        var dates = {'ПН': 1, 'ВТ': 2, 'СР': 3};
-        var date = new Date();
-        var hours = /(\d\d):/.exec(string)[1];
-        var minutes = /:(\d\d)/.exec(string)[1];
-        var zone = /((\+|\-)\d+)/.exec(string)[1];
-        var weekDay = /([А-Я]+)/.exec(string) ? /([А-Я]+)/.exec(string)[1] : undefined;
-        var day = dates[weekDay];
-        hours -= zone;
-        if (hours < 0) {
-            day--;
-            hours = 24 + hours;
-        }
-        if (hours > 24) {
-            day++;
-            hours = hours - 24;
-        }
-        date.setHours(hours);
-        date.setMinutes(minutes);
-        if (day) {
-            date.setDate(day);
-        }
-        return date;
-    };
+    var dates = {'ПН': 1, 'ВТ': 2, 'СР': 3};
+    var date = new Date();
+    var hours = /(\d\d):/.exec(string)[1];
+    var minutes = /:(\d\d)/.exec(string)[1];
+    var zone = /((\+|\-)\d+)/.exec(string)[1];
+    var weekDay = /([А-Я]+)/.exec(string) ? /([А-Я]+)/.exec(string)[1] : undefined;
+    var day = dates[weekDay];
+    hours -= zone;
+    if (hours < 0) {
+        day--;
+        hours = 24 + hours;
+    }
+    if (hours > 24) {
+        day++;
+        hours = hours - 24;
+    }
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    if (day) {
+        date.setDate(day);
+    }
+    return date;
+};
 
 module.exports.getAppropriateMoment = function (json, minDuration, workingHours) {
     var appropriateMoment = moment();
-    appropriateMoment.timezone = - new Date().getTimezoneOffset() / 60;
+    appropriateMoment.timezone = -new Date().getTimezoneOffset() / 60;
     json = JSON.parse(json);
     workingHours.from = parseDate(workingHours.from);
     workingHours.to = parseDate(workingHours.to);
     var gangReady = [];
     var DAYS_NUMBER = 4;
-    for (var i = 1; i < DAYS_NUMBER + 1 ; i++) {
+    for (var i = 1; i < DAYS_NUMBER + 1; i++) {
         var from = new Date();
         var to = new Date();
         from.setDate(i);
@@ -83,7 +83,7 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
         }
         var isTimeEnough = currEntry.to - currEntry.from >= minDuration;
         var isEarlier = currEntry.from.getDate() < prevEntry.from.getDate();
-        if (isTimeEnough && isEarlier){
+        if (isTimeEnough && isEarlier) {
             return currEntry;
         }
     }, undefined).from;
