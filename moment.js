@@ -2,20 +2,29 @@
 
 module.exports = function () {
     return {
-        // Здесь как-то хранится дата ;)
         date: null,
 
-        // А здесь часовой пояс
         timezone: null,
 
-        // Выводит дату в переданном формате
         format: function (pattern) {
-        	return pattern.replace('%DD', this.date.weekday).replace('%HH', this.date.time.getHours()).replace('%MM', this.date.time.getMinutes());
+        	var dates = {1: 'ПН', 2: 'ВТ', 3: 'СР'};
+            var day = dates[this.date.getDate()];
+            pattern = pattern.replace('%DD', day);
+            pattern = pattern.replace('%HH', this.date.getHours() + this.timezone);
+            pattern = pattern.replace('%MM', this.date.getMinutes());
+            return pattern;
         },
 
-        // Возвращает кол-во времени между текущей датой и переданной `moment`
-        // в человекопонятном виде
         fromMoment: function (moment) {
+            var pattern = '«До ограбления остался %DD день %HH час %MM минута»';
+            var time = (this.date - moment.date) / 1000 / 60 ;
+            var days = Math.floor(time / 60 / 24);
+            var hours = Math.floor(time / 60 % 24);
+            var minutes = Math.floor(time - days*1440 - hours*60);
+            pattern = pattern.replace('%DD', days);
+            pattern = pattern.replace('%HH', hours);
+            pattern = pattern.replace('%MM', minutes);
+            return pattern;
         }
     };
 };

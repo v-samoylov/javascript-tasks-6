@@ -2,70 +2,98 @@
 
 var moment = require('./moment');
 
-// Выбирает подходящий ближайший момент начала ограбления
-module.exports.getAppropriateMoment = function (json, minDuration, workingHours) {
-    var appropriateMoment = moment();
-    var parseTime = string => {
-        var time = new Date();
+var parseDate = string => {
+        var dates = {'ПН': 1, 'ВТ': 2, 'СР': 3};
+        var date = new Date();
         var hours = /(\d\d):/.exec(string)[1];
         var minutes = /:(\d\d)/.exec(string)[1];
         var zone = /((\+|\-)\d+)/.exec(string)[1];
-        time.setHours(hours - zone);
-        time.setMinutes(minutes);
-        return time;
+        var weekDay = /([А-Я]+)/.exec(string) ? /([А-Я]+)/.exec(string)[1] : undefined;
+        var day = dates[weekDay];
+        hours -= zone;
+        if (hours < 0) {
+            day--;
+            hours = 24 + hours;
+        }
+        if (hours > 24) {
+            day++;
+            hours = hours - 24;
+        }
+        date.setHours(hours);
+        date.setMinutes(minutes);
+        if (day) {
+            date.setDate(day);
+        }
+        return date;
     };
+
+module.exports.getAppropriateMoment = function (json, minDuration, workingHours) {
+    var appropriateMoment = moment();
+    appropriateMoment.timezone = - new Date().getTimezoneOffset() / 60;
     json = JSON.parse(json);
-    var dayStart = new Date();
-    var dayEnd = new Date();
-    dayStart.setHours(0);
-    dayStart.setMinutes(0);
-    dayEnd.setHours(23);
-    dayEnd.setMinutes(59);
-    workingHours.from = parseTime(workingHours.from);
-    workingHours.to = parseTime(workingHours.to);
-    var gangReady = {
-        'ПН': {from: dayStart, to: dayEnd},
-        'ВТ': {from: dayStart, to: dayEnd},
-        'СР': {from: dayStart, to: dayEnd}
-    };
-    
+    workingHours.from = parseDate(workingHours.from);
+    workingHours.to = parseDate(workingHours.to);
+    var gangReady = [];
+    var DAYS_NUMBER = 4;
+    for (var i = 1; i < DAYS_NUMBER + 1 ; i++) {
+        var from = new Date();
+        var to = new Date();
+        from.setDate(i);
+        from.setHours(workingHours.from.getHours());
+        from.setMinutes(workingHours.from.getMinutes());
+        to.setDate(i);
+        to.setHours(workingHours.to.getHours());
+        to.setMinutes(workingHours.to.getMinutes());
+        gangReady.push({from, to});
+    }
     Object.keys(json).forEach(name => {
-        json[name].forEach(entry => {
-            var weekday = entry['from'].substring(0, 2);
-            if (gangReady[weekday].from < parseTime(entry['from'])) {
-                gangReady[weekday].from = parseTime(entry['from']);
-            }
-        });
-        json[name].forEach(entry => {
-            var weekday = entry['from'].substring(0, 2);
-            if (gangReady[weekday].to > parseTime(entry['to'])) {
-                gangReady[weekday].to = parseTime(entry['to']);
-            }
+        json[name] = json[name].map(entry => {
+            return {from: parseDate(entry['from']), to: parseDate(entry['to'])};
         });
     });
-    var weekDays = Object.keys(gangReady);
-    for (var i = 0; i < weekDays.length; i++){
-        var weekDay = weekDays[i];
-        var dayStart = gangReady[weekDay].from < workingHours.from ? workingHours.from : gangReady[weekDay].from;
-        var dayEnd = gangReady[weekDay].to < workingHours.to ? workingHours.to : gangReady[weekDay].to;
-        if (((dayEnd - dayStart)/1000/60 >= minDuration) && dayStart < dayEnd) {
-            var weekday = weekDay;
-            var time = dayStart;
-            appropriateMoment.date = {weekday, time};
-            console.log(time.getHours(), time.getMinutes());
-            break;
+    Object.keys(json).forEach(name => {
+        var j = 0;
+        json[name].forEach(entry => {
+            for (var i = 0; i < gangReady.length; i++) {
+                var _entry = gangReady[i];
+                var isEntryPushed = false;
+                if (!_entry) {
+                    break;
+                }
+                if (entry.from > _entry.from && entry.from < _entry.to) {
+                    gangReady.push({from: _entry.from, to: entry.from});
+                    isEntryPushed = true;
+                }
+                if (entry.to < _entry.to && _entry.from < entry.to) {
+                    gangReady.push({from: entry.to, to: _entry.to});
+                    isEntryPushed = true;
+                }
+                if ((entry.from <= _entry.from && entry.to >= _entry.to) || isEntryPushed) {
+                    delete gangReady[i];
+                }
+            }
+            gangReady = gangReady.filter(entry => {
+                return typeof entry !== 'undefined';
+            });
+        });
+    });
+    appropriateMoment.date = gangReady.reduce((prevEntry, currEntry) => {
+        if (!prevEntry) {
+            return currEntry;
         }
-    }
-    
+        var isTimeEnough = currEntry.to - currEntry.from >= minDuration;
+        var isEarlier = currEntry.from.getDate() < prevEntry.from.getDate();
+        if (isTimeEnough && isEarlier){
+            return currEntry;
+        }
+    }, undefined).from;
     return appropriateMoment;
 };
 
-// Возвращает статус ограбления (этот метод уже готов!)
 module.exports.getStatus = function (moment, robberyMoment) {
+    moment.date = parseDate(moment.date);
     if (moment.date < robberyMoment.date) {
-        // «До ограбления остался 1 день 6 часов 59 минут»
         return robberyMoment.fromMoment(moment);
     }
-
     return 'Ограбление уже идёт!';
 };
