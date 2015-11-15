@@ -29,7 +29,6 @@ var parseDate = string => {
 
 module.exports.getAppropriateMoment = function (json, minDuration, workingHours) {
     var appropriateMoment = moment();
-    appropriateMoment.timezone = -new Date().getTimezoneOffset() / 60;
     json = JSON.parse(json);
     workingHours.from = parseDate(workingHours.from);
     workingHours.to = parseDate(workingHours.to);
