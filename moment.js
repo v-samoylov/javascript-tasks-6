@@ -12,15 +12,19 @@ module.exports = function () {
             }
             var dates = {1: 'ПН', 2: 'ВТ', 3: 'СР'};
             var day = dates[this.date.getDate()];
-            pattern = pattern.replace('%DD', day);
-            pattern = pattern.replace('%HH', this.date.getHours() + this.timezone);
             var minutes = this.date.getMinutes();
             minutes = minutes < 10 ? '0' + minutes.toString() : minutes;
+            var hours = new Date(this.date.getTime() + this.timezone * 60 * 60 * 1000);
+            pattern = pattern.replace('%DD', day);
+            pattern = pattern.replace('%HH', hours.getHours());
             pattern = pattern.replace('%MM', minutes);
             return pattern;
         },
 
         fromMoment: function (moment) {
+            if (!this.timezone) {
+                this.timezone = 5;
+            }
             var pattern = '«До ограбления остался %DD день %HH час %MM минута»';
             var time = (this.date - moment.date) / 1000 / 60;
             var days = Math.floor(time / 60 / 24);

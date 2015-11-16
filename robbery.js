@@ -10,20 +10,12 @@ var parseDate = string => {
     var zone = /((\+|\-)\d+)/.exec(string)[1];
     var weekDay = /([А-Я]+)/.exec(string) ? /([А-Я]+)/.exec(string)[1] : undefined;
     var day = dates[weekDay];
-    hours -= zone;
-    if (hours < 0) {
-        day--;
-        hours = 24 + hours;
-    }
-    if (hours > 24) {
-        day++;
-        hours = hours - 24;
-    }
     date.setHours(hours);
     date.setMinutes(minutes);
     if (day) {
         date.setDate(day);
     }
+    date = new Date(date.getTime() - zone * 60 * 60 * 1000);
     return date;
 };
 
@@ -82,7 +74,9 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
         var isEarlier = currEntry.from.getDate() < prevEntry.from.getDate();
         return isTimeEnough && isEarlier ? currEntry : prevEntry;
     }, {from: weekLimit}).from;
-    appropriateMoment.date = dateFound === weekLimit ? null : dateFound;
+    if (dateFound !== weekLimit) {
+        appropriateMoment.date = dateFound;
+    }
     return appropriateMoment;
 };
 
