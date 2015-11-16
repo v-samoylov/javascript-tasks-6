@@ -51,7 +51,6 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
         });
     });
     Object.keys(json).forEach(name => {
-        var j = 0;
         json[name].forEach(entry => {
             for (var i = 0; i < gangReady.length; i++) {
                 var _entry = gangReady[i];
@@ -63,7 +62,7 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
                     gangReady.push({from: _entry.from, to: entry.from});
                     isEntryPushed = true;
                 }
-                if (entry.to < _entry.to && _entry.from < entry.to) {
+                if (entry.to < _entry.to && entry.to > _entry.from) {
                     gangReady.push({from: entry.to, to: _entry.to});
                     isEntryPushed = true;
                 }
@@ -76,16 +75,14 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
             });
         });
     });
-    appropriateMoment.date = gangReady.reduce((prevEntry, currEntry) => {
-        if (!prevEntry) {
-            return currEntry;
-        }
-        var isTimeEnough = currEntry.to - currEntry.from >= minDuration;
+    var weekLimit = new Date();
+    weekLimit.setDate(8);
+    var dateFound = gangReady.reduce((prevEntry, currEntry) => {
+        var isTimeEnough = currEntry.to - currEntry.from >= minDuration * 60 * 1000;
         var isEarlier = currEntry.from.getDate() < prevEntry.from.getDate();
-        if (isTimeEnough && isEarlier) {
-            return currEntry;
-        }
-    }, undefined).from;
+        return isTimeEnough && isEarlier ? currEntry : prevEntry;
+    }, {from: weekLimit}).from;
+    appropriateMoment.date = dateFound === weekLimit ? null : dateFound;
     return appropriateMoment;
 };
 
