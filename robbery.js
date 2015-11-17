@@ -47,9 +47,6 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
             for (var i = 0; i < gangReady.length; i++) {
                 var _entry = gangReady[i];
                 var isEntryPushed = false;
-                if (!_entry) {
-                    break;
-                }
                 if (entry.from > _entry.from && entry.from < _entry.to) {
                     gangReady.push({from: _entry.from, to: entry.from});
                     isEntryPushed = true;
