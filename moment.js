@@ -36,11 +36,17 @@ module.exports = function () {
             minutes = minutes < 10 ? '0' + minutes.toString() : minutes;
             var ending = days === '01' ? 'ся' : 'ось';
             pattern = pattern.replace('{0}', ending);
-            ending = parseInt(days[1]) < 5 ? (parseInt(days[1]) === 1 ? 'ень' : 'ня') : 'ней';
+            ending = parseInt(days[1]) < 5 ?
+                (parseInt(days[1]) === 1 ? 'ень' : 'ня') :
+                'ней';
             pattern = pattern.replace('{1}', ending);
-            ending = parseInt(hours[1]) < 5 && hours !== '11' ? (parseInt(hours[1]) === 1 ? '' : 'а') : 'ов';
+            ending = parseInt(hours[1]) < 5 && hours !== '11' ?
+                (parseInt(hours[1]) === 1 ? '' : 'а') :
+                'ов';
             pattern = pattern.replace('{2}', ending);
-            ending = parseInt(minutes[1]) < 5 && minutes !== '11' ? (parseInt(minutes[1]) === 1 ? 'а' : 'ы') : '';
+            ending = parseInt(minutes[1]) < 5 && minutes !== '11' ?
+                (parseInt(minutes[1]) === 1 ? 'а' : 'ы') :
+                '';
             pattern = pattern.replace('{3}', ending);
             pattern = pattern.replace('%DD', days);
             pattern = pattern.replace('%HH', hours);
