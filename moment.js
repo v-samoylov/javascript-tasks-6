@@ -26,7 +26,7 @@ module.exports = function () {
             if (this.timezone === null) {
                 this.timezone = 5;
             }
-            var pattern = '«До ограбления остал{0} %DD д{1} %HH час{2} %MM минут{3}»';
+            var pattern = 'До ограбления осталось\n«Дней: %DD Часов: %HH Минут: %MM »';
             var time = (this.date - moment.date) / 1000 / 60;
             var days = Math.floor(time / 60 / 24);
             var hours = Math.floor(time / 60 % 24);
@@ -34,20 +34,6 @@ module.exports = function () {
             days = days < 10 ? '0' + days.toString() : days;
             hours = hours < 10 ? '0' + hours.toString() : hours;
             minutes = minutes < 10 ? '0' + minutes.toString() : minutes;
-            var ending = days === '01' ? 'ся' : 'ось';
-            pattern = pattern.replace('{0}', ending);
-            ending = parseInt(days[1]) < 5 ?
-                (parseInt(days[1]) === 1 ? 'ень' : 'ня') :
-                'ней';
-            pattern = pattern.replace('{1}', ending);
-            ending = parseInt(hours[1]) < 5 && hours !== '11' ?
-                (parseInt(hours[1]) === 1 ? '' : 'а') :
-                'ов';
-            pattern = pattern.replace('{2}', ending);
-            ending = parseInt(minutes[1]) < 5 && minutes !== '11' ?
-                (parseInt(minutes[1]) === 1 ? 'а' : 'ы') :
-                '';
-            pattern = pattern.replace('{3}', ending);
             pattern = pattern.replace('%DD', days);
             pattern = pattern.replace('%HH', hours);
             pattern = pattern.replace('%MM', minutes);
